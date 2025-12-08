@@ -1,3 +1,5 @@
+console.log('----- calc.js 开始执行 -----');
+
 let CONFIG = {};          // 存放读取的 json
 const MODE = document.querySelectorAll('[name="mode"]');
 const KIND = document.querySelectorAll('[name="kind"]');
@@ -109,4 +111,5 @@ function calc() {
   document.getElementById('can-sell').textContent = `出售状态：${canSell}`;
   document.getElementById('points').innerHTML = listHtml;
   RESULT.classList.remove('hidden');
+
 }
