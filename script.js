@@ -1,75 +1,145 @@
+// script.js
 let config = null;
-let selectedData = null;
+let selected = null;
 
-async function loadConfig() {
-    const res = await fetch("config.json");
-    config = await res.json();
+const headSelect = document.getElementById('headSelect');
+const armorSelect = document.getElementById('armorSelect');
+const labelInit = document.getElementById('labelInit');
+const labelSell = document.getElementById('labelSell');
+const cur = document.getElementById('cur');
+const max = document.getElementById('max');
 
-    // 填充头
-    config.head.forEach(v => {
-        headSelect.innerHTML += `<option value="${v.id}">${v.id}</option>`;
-    });
+const resultMax = document.getElementById('resultMax');
+const innerSell = document.getElementById('innerSell');
+const innerBringOut = document.getElementById('innerBringOut');
+const outerResult = document.getElementById('outerResult');
+const outerSell = document.getElementById('outerSell');
 
-    // 填充甲
-    config.armor.forEach(v => {
-        armorSelect.innerHTML += `<option value="${v.id}">${v.id}</option>`;
-    });
+const c1 = document.getElementById('c1');
+const c2 = document.getElementById('c2');
+const c3 = document.getElementById('c3');
+const c4 = document.getElementById('c4');
+
+async function loadConfig(){
+  const r = await fetch('config.json');
+  config = await r.json();
+  // 填充选择框 (只显示 id，之后可改为名字)
+  config.head.forEach(h => headSelect.insertAdjacentHTML('beforeend', `<option value="${h.id}">${h.id}</option>`));
+  config.armor.forEach(a => armorSelect.insertAdjacentHTML('beforeend', `<option value="${a.id}">${a.id}</option>`));
 }
-
 loadConfig();
 
-// 选择头或甲
-headSelect.onchange = function () {
-    armorSelect.value = "";
-    selectedData = config.head.find(v => v.id == this.value);
-    calc();
-};
+headSelect.onchange = function(){
+  armorSelect.value = "";
+  selected = config.head.find(x => String(x.id) === this.value) || null;
+  updateLabels();
+  calc();
+}
+armorSelect.onchange = function(){
+  headSelect.value = "";
+  selected = config.armor.find(x => String(x.id) === this.value) || null;
+  updateLabels();
+  calc();
+}
 
-armorSelect.onchange = function () {
-    headSelect.value = "";
-    selectedData = config.armor.find(v => v.id == this.value);
-    calc();
-};
-
-// 输入触发计算
 cur.oninput = max.oninput = calc;
 
-function calc() {
-    if (!selectedData) return;
-    if (!cur.value || !max.value) return;
+function clearOutputs(){
+  resultMax.innerText = '';
+  innerSell.innerText = '';
+  innerBringOut.innerText = '';
+  outerResult.innerText = '';
+  outerSell.innerText = '';
+  c1.innerText = c2.innerText = c3.innerText = c4.innerText = '';
+}
 
-    const curVal = parseFloat(cur.value);
-    const maxVal = parseFloat(max.value);
-    const init = selectedData.init;
+function updateLabels(){
+  if (!selected){
+    labelInit.innerText = '-';
+    labelSell.innerText = '-';
+    clearOutputs();
+    return;
+  }
+  labelInit.innerText = selected.init;
+  labelSell.innerText = selected.sell;
+}
 
-    // a = 当前耐久上限 - 当前耐久
-    const a = maxVal - curVal;
+function calc(){
+  clearOutputs();
+  if (!selected) return;
+  if (!cur.value || !max.value) return;
 
-    // b = a / 当前耐久上限
-    const b = a / maxVal;
+  const 当前耐久上限 = Number(max.value);
+  const 当前耐久 = Number(cur.value);
+  const 初始上限 = Number(selected.init);
+  const 维修损耗 = Number(selected.loss);
 
-    // c = 当前耐久上限 / 初始上限
-    const c = maxVal / init;
+  // a = 当前耐久上限 - 当前耐久
+  const a = 当前耐久上限 - 当前耐久;
 
-    // d = ln(c)/ln(10)
-    const d = Math.log(c) / Math.log(10);
+  // b = a / 当前耐久上限
+  const b = a / 当前耐久上限;
 
-    // e = 当前耐久上限 − 当前耐久上限 × b × (维修损耗 − d)
-    const e = maxVal - maxVal * b * (selectedData.loss - d);
+  // c = 当前耐久上限 / 初始上限
+  const c = 当前耐久上限 / 初始上限;
 
-    const finalMax = Number(e.toFixed(1));
-    resultMax.innerText = finalMax;
+  // d = ln(c) / ln(10)
+  const d = Math.log(c) / Math.log(10);
 
-    // 可出售判断
-    if (finalMax >= selectedData.sell)
-        check1.innerText = "可出售";
-    else
-        check1.innerText = "不可出售";
+  // e = 当前耐久上限 - 当前耐久上限 * b * (维修损耗 - d)
+  const e = 当前耐久上限 - 当前耐久上限 * b * (维修损耗 - d);
 
-    const diff = finalMax - curVal;
+  // 维修后耐久上限（局内维修结果） 四舍五入到 0.1
+  const 维修后耐久上限 = Number(Math.round(e * 10) / 10);
+  resultMax.innerText = isFinite(维修后耐久上限) ? 维修后耐久上限 : '';
 
-    c1.innerText = (diff / selectedData.m1).toFixed(1);
-    c2.innerText = (diff / selectedData.m2).toFixed(1);
-    c3.innerText = (diff / selectedData.m3).toFixed(1);
-    c4.innerText = (diff / selectedData.m4).toFixed(1);
+  if (isFinite(维修后耐久上限)) {
+    // 局内带出耐久 = 取整(维修后耐久上限)
+    const 局内维修后带出耐久 = Math.floor(维修后耐久上限);
+    innerBringOut.innerText = 局内维修后带出耐久;
+
+    // 可出售判断：局内带出耐久 >= sell 则可出售
+    if (局内维修后带出耐久 >= selected.sell) {
+      innerSell.innerText = '可出售';
+      innerSell.style.color = 'var(--good)';
+    } else {
+      innerSell.innerText = '不可出售';
+      innerSell.style.color = 'var(--bad)';
+    }
+
+    // 维修耐久差值 = 维修后耐久上限 - 当前耐久
+    const 维修耐久差值 = 维修后耐久上限 - 当前耐久;
+
+    // 消耗维修包点数 = 差值 ÷ 维修倍率X (四个)
+    // 如果差值为负（已经高于维修后上限），显示 0
+    const diff = 维修耐久差值 > 0 ? 维修耐久差值 : 0;
+    c1.innerText = (diff / selected.m1).toFixed(1);
+    c2.innerText = (diff / selected.m2).toFixed(1);
+    c3.innerText = (diff / selected.m3).toFixed(1);
+    c4.innerText = (diff / selected.m4).toFixed(1);
+  }
+
+  // 局外维修计算（先取整当前耐久上限：原代码中用取整）
+  const 当前耐久上限取整 = Math.floor(当前耐久上限);
+  const f = 当前耐久上限取整 - 当前耐久;            // f
+  const g = 当前耐久上限取整 === 0 ? 0 : f / 当前耐久上限取整; // g
+  const h = 当前耐久上限取整 / 初始上限;            // h
+  const i = Math.log(h) / Math.log(10);              // i
+  const j = 维修损耗 - i;                            // j
+
+  let 局外维修后耐久 = 0;
+  if (当前耐久上限取整 > 0) {
+    局外维修后耐久 = Math.floor(当前耐久上限取整 - 当前耐久上限取整 * g * j);
+    outerResult.innerText = 局外维修后耐久;
+    if (局外维修后耐久 >= selected.sell) {
+      outerSell.innerText = '可出售';
+      outerSell.style.color = 'var(--good)';
+    } else {
+      outerSell.innerText = '不可出售';
+      outerSell.style.color = 'var(--bad)';
+    }
+  } else {
+    outerResult.innerText = '';
+    outerSell.innerText = '';
+  }
 }
