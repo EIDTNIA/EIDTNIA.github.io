@@ -1,69 +1,62 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>三角洲头甲维修计算器</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <title>装备维修计算器</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="window">
-    <header>
-      <h1>三角洲头甲维修计算器 V1.0</h1>
-    </header>
+  <h1>装备维修计算器</h1>
 
-    <div class="row">
-      <label>要计算的头盔名称:</label>
-      <select id="headSelect"><option value="">--请选择头--</option></select>
-    </div>
+  <section id="mode-sec">
+    <label><input type="radio" name="mode" value="in" checked /> 局内维修</label>
+    <label><input type="radio" name="mode" value="out" /> 局外维修</label>
+  </section>
 
-    <div class="row">
-      <label>要计算的护甲名称:</label>
-      <select id="armorSelect"><option value="">--请选择甲--</option></select>
-    </div>
+  <section id="kind-sec">
+    <label><input type="radio" name="kind" value="head" checked /> 头盔</label>
+    <label><input type="radio" name="kind" value="armor" /> 护甲</label>
+  </section>
 
-    <div class="row">
-      <label>初始耐久上限:</label>
-      <span id="labelInit">-</span>
-      <label class="small"> 可出售最低上限:</label>
-      <span id="labelSell">-</span>
-    </div>
+  <section id="pick-sec">
+    <select id="pick"></select>
+  </section>
 
-    <div class="row">
-      <label>当前耐久:</label>
-      <input id="cur" type="number" min="0" />
-      <label>当前耐久上限:</label>
-      <input id="max" type="number" min="1" />
-    </div>
+  <section id="params" class="hidden">
+    <h3>装备参数</h3>
+    <ul>
+      <li>初始上限：<span class="val" id="init"></span></li>
+      <li>最低可出售耐久：<span class="val" id="sell"></span></li>
+      <li>维修损耗：<span class="val" id="loss"></span></li>
+      <li>维修包效率：
+        <ul>
+          <li>自制：<span class="val" id="m1"></span></li>
+          <li>标准：<span class="val" id="m2"></span></li>
+          <li>精密：<span class="val" id="m3"></span></li>
+          <li>高级组合：<span class="val" id="m4"></span></li>
+        </ul>
+      </li>
+    </ul>
+  </section>
 
-    <div class="section">
-      <div class="left">
-        <div class="line"><label>局内维修后耐久上限:</label><span id="resultMax"></span> <span id="innerSell" class="sell"></span></div>
-        <div class="line"><label>局内带出耐久 (取整):</label><span id="innerBringOut"></span></div>
-      </div>
+  <section id="input-sec">
+    <label>当前上限（1 位小数）：
+      <input type="number" id="cur" min="0" step="0.1" />
+    </label>
+    <label>剩余耐久（1 位小数）：
+      <input type="number" id="rem" min="0" step="0.1" />
+    </label>
+    <button id="calc">计算</button>
+  </section>
 
-      <div class="right">
-        <div class="line"><label>局外维修后耐久:</label><span id="outerResult"></span> <span id="outerSell" class="sell"></span></div>
-      </div>
-    </div>
+  <section id="result" class="hidden">
+    <h3>计算结果</h3>
+    <p id="can-repair"></p>
+    <p id="after"></p>
+    <p id="can-sell"></p>
+    <ul id="points"></ul>
+  </section>
 
-    <div class="section">
-      <h3>消耗维修包(点数)</h3>
-      <div class="line">
-        <label>维修倍率1 (消耗):</label><span id="c1"></span>
-        <label>维修倍率2 (消耗):</label><span id="c2"></span>
-      </div>
-      <div class="line">
-        <label>维修倍率3 (消耗):</label><span id="c3"></span>
-        <label>维修倍率4 (消耗):</label><span id="c4"></span>
-      </div>
-    </div>
-
-    <footer>
-      <small>界面按原版排列；数值来源于 config.json（序号代替名字）。</small>
-    </footer>
-  </div>
-
-<script src="script.js"></script>
+  <script src="calc.js"></script>
 </body>
 </html>
