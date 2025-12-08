@@ -14,8 +14,8 @@ fetch('config.json')
   .catch(err => alert('加载配置失败：' + err));
 
 // 事件绑定
-MODE.forEach(r => r.onchange = fillSelect));
-KIND.forEach(r => r.onchange = fillSelect));
+MODE.forEach(r => r.onchange = fillSelect);
+KIND.forEach(r => r.onchange = fillSelect);
 PICK.onchange = showParams;
 document.getElementById('calc').onclick = calc;
 
@@ -113,3 +113,4 @@ function calc() {
   RESULT.classList.remove('hidden');
 
 }
+
